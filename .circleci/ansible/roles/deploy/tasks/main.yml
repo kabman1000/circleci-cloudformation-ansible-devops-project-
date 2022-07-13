@@ -43,6 +43,5 @@
 - name: "start app"
   shell: |
     npm install
-    sudo chown -R $USER /home/ubuntu/node_modules
     pm2 stop default
     pm2 start npm --start
