@@ -17,6 +17,21 @@ commands:
             aws s3 rm s3://udapeople-<< parameters.workflow_id >> --recursive
             aws cloudformation delete-stack --stack-name udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7} 
             aws cloudformation delete-stack --stack-name udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}
+
+  notify_slack_error:
+    steps:
+      - slack/notify:
+          mentions: "@Elvis Kabutey"
+          event: fail
+          template: basic_fail_1
+
+  notify_slack_pass:
+    steps:
+      - slack/notify:
+          mentions: "@Elvis Kabutey"
+          event: pass
+          template: basic_success_1
+
   revert-migrations:
     description: Revert the last migration
     parameters:
@@ -140,9 +155,8 @@ jobs:
               npm update kind-of --depth 10
               npm audit fix --audit-level=critical --force
               npm audit --audit-level=critical
-      - slack/notify:
-          channel: 03-cloud-devops
-          event: fail
+
+      - notify_slack_error
 
   deploy-infrastructure:
     docker:
@@ -356,6 +370,11 @@ jobs:
               return 1
             fi
 
+      - destroy-environment:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+
+      - revert-migrations:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
       
 
   cloudfront-update:
@@ -388,6 +407,35 @@ jobs:
       - revert-migrations:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
+  cleanup:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+
+      - run:
+          name: Get old stack workflow id
+          command: |
+            export OldWorkflowID=$(aws cloudformation list-exports --query "Exports[?Name==\`WorkflowID\`].Value" --no-paginate --output text)
+            echo OldWorkflowID: "${OldWorkflowID}"
+            echo CIRCLE_WORKFLOW_ID "${CIRCLE_WORKFLOW_ID:0:7}"
+            export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" --stack-status-filter CREATE_COMPLETE --no-paginate --output text)) 
+            echo Stack names: "${STACKS[@]}"
+            
+            if [[ "${CIRCLE_WORKFLOW_ID:0:7}" != "${OldWorkflowID}" ]]
+            then
+              echo "-----------------Delete Confirmed----------------"
+              # aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
+              # aws s3 rm "s3://${OldWorkflowID}" --recursive
+              aws cloudformation delete-stack --stack-name "${OldWorkflowID}"
+              aws cloudformation delete-stack --stack-name "${OldWorkflowID}"
+            else
+              echo "----------------No need to clean up-----------------"
+            fi
+
+      - notify_slack_error
+      - notify_slack_pass
+
 
 workflows:
   default:
@@ -417,3 +465,5 @@ workflows:
           requires: [deploy-backend, deploy-frontend]
       - cloudfront-update:
           requires: [smoke-test]
+      - cleanup:
+          requires: [cloudfront-update]
