@@ -459,50 +459,18 @@ workflows:
               only: [dev-branch]
       - deploy-infrastructure:
           requires: [test-frontend, test-backend, scan-frontend, scan-backend]
-          filters:
-            branches:
-              ignore: [dev-branch]
-              only: [master]
       - configure-infrastructure:
           requires: [deploy-infrastructure]
-          filters:
-            branches:
-              ignore: [dev-branch]
-              only: [master]
       - run-migrations:
           requires: [configure-infrastructure]
-          filters:
-            branches:
-              ignore: [dev-branch]
-              only: [master]
       - deploy-frontend:
           requires: [run-migrations]
-          filters:
-            branches:
-              ignore: [dev-branch]
-              only: [master]
       - deploy-backend:
           requires: [run-migrations]
-          filters:
-            branches:
-              ignore: [dev-branch]
-              only: [master]
       - smoke-test:
           requires: [deploy-backend, deploy-frontend]
-          filters:
-            branches:
-              ignore: [dev-branch]
-              only: [master]
       - cloudfront-update:
           requires: [smoke-test]
-          filters:
-            branches:
-              ignore: [dev-branch]
-              only: [master]
       - cleanup:
           requires: [cloudfront-update]
           context: contextslack
-          filters:
-            branches:
-              ignore: [dev-branch]
-              only: [master]
