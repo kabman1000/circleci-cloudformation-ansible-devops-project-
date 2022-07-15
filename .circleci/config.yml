@@ -369,7 +369,7 @@ jobs:
     docker:
       - image: python:3.7-alpine3.11
 
-    # Create code that promotes our new front-end to production.
+    # Create code that promotes our new front-end to productions.
     steps:
       - checkout
       - run:
