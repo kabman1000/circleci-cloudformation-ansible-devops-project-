@@ -1,2 +1,2 @@
 URL01-https://github.com/kabman1000/circleci-cloudformation-ansible-devops-project-
-URL02-S3 BUCKET-
+URL02-http://udapeople-2b32143.s3-website.us-east-2.amazonaws.com
