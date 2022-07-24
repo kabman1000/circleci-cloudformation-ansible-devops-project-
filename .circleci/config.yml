@@ -30,7 +30,7 @@ commands:
           when: on_fail
           command: |
             # Example: kvdb.io
-            export SUCCESS=$(curl --insecure https://kvdb.io/EzsoKLn6vxfoCstCSYLuvk/migration_<< parameters.workflow_id >>)
+            export SUCCESS=$(curl --insecure https://kvdb.io/RHWKPfcuedMWf61XzzWwMi/migration_<< parameters.workflow_id >>)
             echo $SUCCESS
             # Logic for reverting the database state
             
@@ -234,7 +234,7 @@ jobs:
           command: |   
             if grep -q "has been executed successfully." ~/project/backend/migrations_dump.txt
             then
-                curl --insecure https://kvdb.io/EzsoKLn6vxfoCstCSYLuvk/migration_$\{CIRCLE_WORKFLOW_ID:0:7\} -d '1'
+                curl --insecure https://kvdb.io/RHWKPfcuedMWf61XzzWwMi/migration_$\{CIRCLE_WORKFLOW_ID:0:7\} -d '1'
             fi
      # Here's where you will add some code to rollback on failure
       - destroy-environment:
@@ -263,6 +263,7 @@ jobs:
             export BACKEND_IP=$(aws ec2 describe-instances --filters Name=tag:project,Values=udapeople --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}" >> frontend/.env
+            cat frontend/.env
       - run:
           name: Deploy frontend objects
           command: |
